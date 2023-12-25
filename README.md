@@ -10,7 +10,7 @@ The stupidest content tracker, in python.
 - [ ] checkout
 - [ ] commit
 - [ ] hash-object
-- [ ] init
+- [x] init
 - [ ] log
 - [ ] ls-files
 - [ ] ls-tree
