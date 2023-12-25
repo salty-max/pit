@@ -1,9 +1,8 @@
 import os
 import configparser
 import subprocess
-from util import repo_file, repo_dir
+from repo import repo_file, repo_dir, GitRepository
 from error import FileSystemException, GitException
-from classes import GitRepository
 
 
 def repo_create(path):

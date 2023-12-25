@@ -5,11 +5,11 @@ The stupidest content tracker, in python.
 ## Features
 
 - [ ] add
-- [ ] cat-file
+- [x] cat-file
 - [ ] check-ignore
 - [ ] checkout
 - [ ] commit
-- [ ] hash-object
+- [x] hash-object
 - [x] init
 - [ ] log
 - [ ] ls-files
