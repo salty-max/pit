@@ -1,36 +1,9 @@
 import os
 import configparser
+import subprocess
 from util import repo_file, repo_dir
 from error import FileSystemException, GitException
-
-
-class GitRepository(object):
-    """A git repository"""
-
-    worktree = None
-    gitdir = None
-    conf = None
-
-    def __init__(self, path, force=False):
-        self.worktree = path
-        self.gitdir = os.path.join(path, ".git")
-
-        if not (force or os.path.isdir(self.gitdir)):
-            raise GitException("Not a Git repository %s" % path)
-
-        # Read configuration file in .git/config
-        self.conf = configparser.ConfigParser()
-        cf = repo_file(self, "config")
-
-        if cf and os.path.exists(cf):
-            self.conf.read([cf])
-        elif not force:
-            raise GitException("Configuration file missing")
-
-        if not force:
-            vers = int(self.conf.get("core", "repositoryformatversion"))
-            if vers != 0:
-                raise GitException("Unsupported repositoryformatversion %s" % vers)
+from classes import GitRepository
 
 
 def repo_create(path):
@@ -63,9 +36,11 @@ def repo_create(path):
             "Unnamed repository: edit this file 'description' to name the repository.\n"
         )
 
+    default_branch_name = get_default_branch_name()
+
     # .git/HEAD
     with open(repo_file(repo, "HEAD"), "w") as f:
-        f.write("ref: refs/heads/master\n")
+        f.write(f"ref: refs/heads/{default_branch_name}\n")
 
     with open(repo_file(repo, "config"), "w") as f:
         config = repo_default_config()
@@ -83,3 +58,19 @@ def repo_default_config():
     ret.set("core", "bare", "false")
 
     return ret
+
+
+def get_default_branch_name():
+    """Use git to get the default branch name from the global config"""
+    try:
+        result = subprocess.run(
+            ["git", "config", "--global", "init.defaultBranch"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        default_branch_name = result.stdout.strip()
+        return default_branch_name
+    except subprocess.CalledProcessError as e:
+        print("Failed to get git global configuration: ", e)
+        return "main"

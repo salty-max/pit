@@ -35,6 +35,7 @@ def repo_dir(repo, *path, mkdir=False):
 
 
 def repo_find(path=".", required=True):
+    """Find recursively a Git repository and it founds one return it."""
     path = os.path.realpath(path)
 
     if os.path.isdir(os.path.join(path, ".git")):

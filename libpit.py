@@ -10,7 +10,7 @@ import os
 import re
 import sys
 import zlib
-from commands import init
+from commands.init import repo_create
 
 argparser = argparse.ArgumentParser(description="The stupidest content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
@@ -26,7 +26,7 @@ argsp.add_argument(
 
 
 def cmd_init(args):
-    init.repo_create(args.path)
+    repo_create(args.path)
 
 
 def main(argv=sys.argv[1:]):
