@@ -3,6 +3,7 @@ import sys
 from commands.init import repo_create
 from commands.hash import cat_file, hash_object
 from repo import repo_find
+from object import object_find, object_read
 
 argparser = argparse.ArgumentParser(description="The stupidest content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
@@ -47,6 +48,9 @@ argsp.add_argument(
 )
 argsp.add_argument("path", help="Read object from <file>")
 
+argsp = argsubparsers.add_parser("log", help="Display history of a given commit.")
+argsp.add_argument("commit", default="HEAD", nargs="?", help="Commit to start at.")
+
 
 def cmd_init(args):
     repo_create(args.path)
@@ -68,6 +72,45 @@ def cmd_hash_object(args):
         print(sha)
 
 
+def cmd_log(args):
+    repo = repo_find()
+
+    print("digraph pitlog{")
+    print("    node[shape=rect]")
+    log_graphviz(repo, object_find(repo, args.commit), set())
+    print("}")
+
+
+def log_graphviz(repo, sha, seen):
+    if sha in seen:
+        return
+    seen.add(sha)
+
+    commit = object_read(repo, sha)
+    short_hash = sha[0:8]
+    message = commit.kvlm[None].decode("utf8").strip()
+    message = message.replace("\\", "\\\\")
+    message = message.replace('"', '\\"')
+
+    if "\n" in message:  # Keep only the first line
+        message = message[: message.index("\n")]
+
+    print('    c_{0} [label="{1}: {2}"]'.format(sha, short_hash, message))
+    assert commit.fmt == b"commit"
+
+    if not b"parent" in commit.kvlm.keys():
+        # Base case: the initial commit
+        return
+
+    if type(parents) != list:
+        parents = [parents]
+
+    for p in parents:
+        p = p.decode("ascii")
+        print("    c_{0} -> c_{1};".format(sha, p))
+        log_graphviz(repo, p, seen)
+
+
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
     match args.command:
@@ -77,6 +120,8 @@ def main(argv=sys.argv[1:]):
             cmd_cat_file(args)
         case "hash-object":
             cmd_hash_object(args)
+        case "log":
+            cmd_log(args)
         case _:
             print("Bad command.")
 

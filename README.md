@@ -11,7 +11,7 @@ The stupidest content tracker, in python.
 - [ ] commit
 - [x] hash-object
 - [x] init
-- [ ] log
+- [x] log
 - [ ] ls-files
 - [ ] ls-tree
 - [ ] rev-parse

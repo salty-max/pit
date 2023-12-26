@@ -3,6 +3,7 @@ import zlib
 import sys
 import hashlib
 from repo import repo_file
+from kvlm import kvlm_parse, kvlm_serialize
 
 
 class GitObject(object):
@@ -40,6 +41,19 @@ class GitBlob(GitObject):
 
     def deserialize(self, data):
         self.blobdata = data
+
+
+class GitCommit(GitObject):
+    fmt = b"commit"
+
+    def deserialize(self, data):
+        self.kvlm = kvlm_parse(data[0])
+
+    def serialize(self):
+        return kvlm_serialize(self.kvlm)
+
+    def init(self):
+        self.kvlm = dict()
 
 
 def object_find(repo, name, fmt=None, follow=True):
