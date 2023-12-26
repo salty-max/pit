@@ -8,8 +8,8 @@ def cat_file(repo, obj, fmt=None):
     Print out the content of a git object.
     """
     obj = object_read(repo, object_find(repo, obj, fmt=fmt))
-    for data in obj.serialize():
-        sys.stdout.buffer.write(data)
+
+    sys.stdout.buffer.write(obj.serialize())
 
 
 def hash_object(fd, fmt, repo=None):

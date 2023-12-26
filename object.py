@@ -47,7 +47,7 @@ class GitCommit(GitObject):
     fmt = b"commit"
 
     def deserialize(self, data):
-        self.kvlm = kvlm_parse(data[0])
+        self.kvlm = kvlm_parse(data)
 
     def serialize(self):
         return kvlm_serialize(self.kvlm)
@@ -106,7 +106,7 @@ def object_read(repo, sha):
                 )
 
         # Call constructor and return object
-        return c([raw[y + 1 :]])
+        return c(raw[y + 1 :])
 
 
 def object_write(obj, repo=None):
