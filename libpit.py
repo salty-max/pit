@@ -1,9 +1,11 @@
 import argparse
 import sys
+import os
 from commands.init import repo_create
 from commands.hash import cat_file, hash_object
 from commands.log import log_graphviz, log_print
-from commands.tree import ls_tree
+from commands.tree import ls_tree, tree_checkout
+from error import FileSystemException, GitException
 from repo import repo_find
 from object import object_find, object_read
 
@@ -72,6 +74,13 @@ argsp.add_argument(
 )
 argsp.add_argument("tree", help="A tree-ish object")
 
+# pit checkout
+argsp = argsubparsers.add_parser(
+    "checkout", help="Checkout a commit inside if a directory"
+)
+argsp.add_argument("commit", help="The commit of tree to checkout")
+argsp.add_argument("path", help="The EMPTY directory to checkout on")
+
 
 def cmd_init(args):
     repo_create(args.path)
@@ -111,6 +120,26 @@ def cmd_ls_tree(args):
     ls_tree(repo, args.tree, args.recursive)
 
 
+def cmd_checkout(args):
+    repo = repo_find()
+    obj = object_read(repo, object_find(repo, args.commit))
+
+    # If the object is a commit, grab its tree.
+    if obj.fmt == b"commit":
+        obj = object_read(repo, obj.kvlm[b"tree"].decode("ascii"))
+
+    # Verify that path is an empty directory.
+    if os.path.exists(args.path):
+        if not os.path.isdir(args.path):
+            raise FileSystemException("Not a directory {0}!".format(args.path))
+        if os.listdir(args.path):
+            raise FileSystemException("Not empty {0}!".format(args.path))
+    else:
+        os.makedirs(args.path)
+
+    tree_checkout(repo, obj, os.path.realpath(args.path))
+
+
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
     match args.command:
@@ -124,6 +153,8 @@ def main(argv=sys.argv[1:]):
             cmd_log(args)
         case "ls-tree":
             cmd_ls_tree(args)
+        case "checkout":
+            cmd_checkout(args)
         case _:
             print("Bad command.")
 

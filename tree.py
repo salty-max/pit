@@ -6,6 +6,9 @@ class GitTreeLeaf(object):
 
 
 def tree_parse_one(raw, start=0):
+    """
+    Parse a single tree entry
+    """
     # Find the space terminator of the mode.
     x = raw.find(b" ", start)
     assert x - start == 5 or x - start == 6
@@ -27,6 +30,10 @@ def tree_parse_one(raw, start=0):
 
 
 def tree_parse(raw):
+    """
+    Parse a tree object, calling tree_parse_one for
+    each of its entries
+    """
     pos = 0
     max = len(raw)
     ret = list()
@@ -46,6 +53,9 @@ def tree_leaf_sort_key(leaf):
 
 
 def tree_serialize(obj):
+    """
+    Serialize a tree object in bytes
+    """
     obj.items.sort(key=tree_leaf_sort_key)
     ret = b""
 

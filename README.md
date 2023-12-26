@@ -7,7 +7,7 @@ The stupidest content tracker, in python.
 - [ ] add
 - [x] cat-file
 - [ ] check-ignore
-- [ ] checkout
+- [x] checkout
 - [ ] commit
 - [x] hash-object
 - [x] init

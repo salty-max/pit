@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 
 
 def log_print(repo, sha, seen):
+    """
+    Pretty-print a commit's  history
+    """
     if sha in seen:
         return
     seen.add(sha)
@@ -23,18 +26,21 @@ def log_print(repo, sha, seen):
     offset = author_date[y:]
     date = date_utc(timestamp, offset)
 
-    if "\n" in message:  # Keep only the first line
+    if "\n" in message:  # Keep only the first line.
         message = message[: message.index("\n")]
 
+    # Print the commit SHA.
     print("\x1b[0;33mcommit %s\x1b[0m" % sha)
+    # Print the commit's author.
     print("Author: %s" % author)
+    # Print the commit's date.
     print("Date: %s\n" % date)
 
     print('    "%s"\n' % message)
     assert commit.fmt == b"commit"
 
     if not b"parent" in commit.kvlm.keys():
-        # Base case: the initial commit
+        # Base case: the initial commit.
         return
 
     parents = commit.kvlm[b"parent"]
@@ -49,6 +55,9 @@ def log_print(repo, sha, seen):
 
 
 def log_graphviz(repo, sha, seen):
+    """
+    Return a commit's history in dot format
+    """
     if sha in seen:
         return
     seen.add(sha)

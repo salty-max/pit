@@ -3,6 +3,9 @@ from object import object_find, object_read
 
 
 def ls_tree(repo, ref, recursive=None, prefix=""):
+    """
+    Pretty-print a tree object
+    """
     sha = object_find(repo, ref, fmt=b"tree")
     obj = object_read(repo, sha)
 
@@ -20,7 +23,7 @@ def ls_tree(repo, ref, recursive=None, prefix=""):
             case b"12":
                 type = "blob"  # A symlink. Blob contents is link target.
             case b"16":
-                type = "commit"  # A submodule
+                type = "commit"  # A submodule.
             case _:
                 raise GitException("Weird tree leaf mode {}".format(item.mode))
 
@@ -36,3 +39,20 @@ def ls_tree(repo, ref, recursive=None, prefix=""):
             )
         else:  # This is a branch, recurse.
             ls_tree(repo, item.sha, recursive, os.path.join(prefix, item.path))
+
+
+def tree_checkout(repo, tree, path):
+    """
+    Checkout a commit in an empty directory
+    """
+    for item in tree.items:
+        obj = object_read(repo, item.sha)
+        dest = os.path.join(path, item.path)
+
+        if obj.fmt == b"tree":
+            os.mkdir(dest)
+            tree_checkout(repo, obj, dest)
+        elif obj.fmt == b"blob":
+            # @TODO Support symlinks (identified by mode 12****)
+            with open(dest, "wb") as f:
+                f.write(obj.blobdata)
