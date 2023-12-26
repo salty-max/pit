@@ -5,9 +5,11 @@ from commands.init import repo_create
 from commands.hash import cat_file, hash_object
 from commands.log import log_graphviz, log_print
 from commands.tree import ls_tree, tree_checkout
+from commands.ref import show_refs
 from error import FileSystemException, GitException
 from repo import repo_find
 from object import object_find, object_read
+from ref import ref_list
 
 argparser = argparse.ArgumentParser(description="The stupidest content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
@@ -81,6 +83,9 @@ argsp = argsubparsers.add_parser(
 argsp.add_argument("commit", help="The commit of tree to checkout")
 argsp.add_argument("path", help="The EMPTY directory to checkout on")
 
+# pit show-refs
+argsp = argsubparsers.add_parser("show-refs", help="List references.")
+
 
 def cmd_init(args):
     repo_create(args.path)
@@ -140,6 +145,12 @@ def cmd_checkout(args):
     tree_checkout(repo, obj, os.path.realpath(args.path))
 
 
+def cmd_show_refs(args):
+    repo = repo_find()
+    refs = ref_list(repo)
+    show_refs(repo, refs, prefix="refs")
+
+
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
     match args.command:
@@ -155,6 +166,8 @@ def main(argv=sys.argv[1:]):
             cmd_ls_tree(args)
         case "checkout":
             cmd_checkout(args)
+        case "show-refs":
+            cmd_show_refs(args)
         case _:
             print("Bad command.")
 

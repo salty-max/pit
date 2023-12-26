@@ -16,7 +16,7 @@ The stupidest content tracker, in python.
 - [x] ls-tree
 - [ ] rev-parse
 - [ ] rm
-- [ ] show-ref
+- [x] show-refs
 - [ ] status
 - [ ] tag
 
