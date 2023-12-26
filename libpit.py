@@ -3,6 +3,7 @@ import sys
 from commands.init import repo_create
 from commands.hash import cat_file, hash_object
 from commands.log import log_graphviz, log_print
+from commands.tree import ls_tree
 from repo import repo_find
 from object import object_find, object_read
 
@@ -10,6 +11,7 @@ argparser = argparse.ArgumentParser(description="The stupidest content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 argsubparsers.required = True
 
+# pit init
 argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
 argsp.add_argument(
     "path",
@@ -19,6 +21,7 @@ argsp.add_argument(
     help="Where to create the repository.",
 )
 
+# pit cat-file
 argsp = argsubparsers.add_parser(
     "cat-file", help="Provide content of repository objects."
 )
@@ -30,6 +33,7 @@ argsp.add_argument(
 )
 argsp.add_argument("object", metavar="object", help="The hash of the object to display")
 
+# pit hash-object
 argsp = argsubparsers.add_parser(
     "hash-object", help="Compute object ID and optionally creates a blob from a file"
 )
@@ -49,6 +53,7 @@ argsp.add_argument(
 )
 argsp.add_argument("path", help="Read object from <file>")
 
+# pit log
 argsp = argsubparsers.add_parser("log", help="Display history of a given commit.")
 argsp.add_argument(
     "-f",
@@ -59,6 +64,13 @@ argsp.add_argument(
     help="Specify the log output format",
 )
 argsp.add_argument("commit", default="HEAD", nargs="?", help="Commit to start at.")
+
+# pit ls-tree
+argsp = argsubparsers.add_parser("ls-tree", help="Pretty-print a tree object.")
+argsp.add_argument(
+    "-r", dest="recursive", action="store_true", help="Recurse into sub-trees"
+)
+argsp.add_argument("tree", help="A tree-ish object")
 
 
 def cmd_init(args):
@@ -94,6 +106,11 @@ def cmd_log(args):
             print("}")
 
 
+def cmd_ls_tree(args):
+    repo = repo_find()
+    ls_tree(repo, args.tree, args.recursive)
+
+
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
     match args.command:
@@ -105,6 +122,8 @@ def main(argv=sys.argv[1:]):
             cmd_hash_object(args)
         case "log":
             cmd_log(args)
+        case "ls-tree":
+            cmd_ls_tree(args)
         case _:
             print("Bad command.")
 

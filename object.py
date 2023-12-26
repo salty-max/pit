@@ -4,6 +4,7 @@ import sys
 import hashlib
 from repo import repo_file
 from kvlm import kvlm_parse, kvlm_serialize
+from tree import tree_parse, tree_serialize
 
 
 class GitObject(object):
@@ -54,6 +55,19 @@ class GitCommit(GitObject):
 
     def init(self):
         self.kvlm = dict()
+
+
+class GitTree(GitObject):
+    fmt = b"tree"
+
+    def deserialize(self, data):
+        self.items = tree_parse(data)
+
+    def serialize(self):
+        return tree_serialize(self)
+
+    def init(self):
+        self.items = list()
 
 
 def object_find(repo, name, fmt=None, follow=True):

@@ -13,7 +13,7 @@ The stupidest content tracker, in python.
 - [x] init
 - [x] log
 - [ ] ls-files
-- [ ] ls-tree
+- [x] ls-tree
 - [ ] rev-parse
 - [ ] rm
 - [ ] show-ref
