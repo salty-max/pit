@@ -17,7 +17,7 @@ def tree_parse_one(raw, start=0):
     mode = raw[start:x]
     if len(mode) == 5:
         # Normalize the six bytes.
-        mode = b" " + mode
+        mode = b"0" + mode
 
     # Find the null terminator of the path
     y = raw.find(b"\x00", x)
