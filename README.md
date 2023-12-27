@@ -18,7 +18,7 @@ The stupidest content tracker, in python.
 - [ ] rm
 - [x] show-refs
 - [ ] status
-- [ ] tag
+- [x] tag
 
 ## Use
 

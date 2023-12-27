@@ -39,3 +39,8 @@ def ref_list(repo, path=None):
             ret[f] = ref_resolve(repo, can)
 
     return ret
+
+
+def ref_create(repo, ref_name, sha):
+    with open(repo_file(repo, "refs/" + ref_name), "w") as fp:
+        fp.write(sha + "\n")

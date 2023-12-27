@@ -3,6 +3,7 @@ import configparser
 import subprocess
 from repo import repo_file, repo_dir, GitRepository
 from error import FileSystemException, GitException
+from util import get_default_branch_name
 
 
 def repo_create(path):
@@ -57,19 +58,3 @@ def repo_default_config():
     ret.set("core", "bare", "false")
 
     return ret
-
-
-def get_default_branch_name():
-    """Use git to get the default branch name from the global config"""
-    try:
-        result = subprocess.run(
-            ["git", "config", "--global", "init.defaultBranch"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        default_branch_name = result.stdout.strip()
-        return default_branch_name
-    except subprocess.CalledProcessError as e:
-        print("Failed to get git global configuration: ", e)
-        return "main"

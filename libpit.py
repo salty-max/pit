@@ -6,6 +6,7 @@ from commands.hash import cat_file, hash_object
 from commands.log import log_graphviz, log_print
 from commands.tree import ls_tree, tree_checkout
 from commands.ref import show_refs
+from commands.tag import tag_create
 from error import FileSystemException, GitException
 from repo import repo_find
 from object import object_find, object_read
@@ -86,6 +87,20 @@ argsp.add_argument("path", help="The EMPTY directory to checkout on")
 # pit show-refs
 argsp = argsubparsers.add_parser("show-refs", help="List references.")
 
+# pit tag
+argsp = argsubparsers.add_parser("tag", help="List and create tags.")
+argsp.add_argument(
+    "-a",
+    action="store_true",
+    dest="create_tag_object",
+    help="Wheter to create a tag object or not",
+)
+argsp.add_argument("name", nargs="?", help="The new tag's name")
+argsp.add_argument(
+    "object", default="HEAD", nargs="?", help="The object the new tag will point to"
+)
+argsp.add_argument("-m", metavar="message", dest="message", help="Tag message")
+
 
 def cmd_init(args):
     repo_create(args.path)
@@ -151,6 +166,22 @@ def cmd_show_refs(args):
     show_refs(repo, refs, prefix="refs")
 
 
+def cmd_tag(args):
+    repo = repo_find()
+
+    if args.name:
+        tag_create(
+            repo,
+            args.name,
+            args.object,
+            args.message if (args.create_tag_object and args.message) else None,
+            type == "object" if args.create_tag_object else "ref",
+        )
+    else:
+        refs = ref_list(repo)
+        show_refs(repo, refs["tags"], with_hash=False)
+
+
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
     match args.command:
@@ -168,6 +199,8 @@ def main(argv=sys.argv[1:]):
             cmd_checkout(args)
         case "show-refs":
             cmd_show_refs(args)
+        case "tag":
+            cmd_tag(args)
         case _:
             print("Bad command.")
 

@@ -57,6 +57,10 @@ class GitCommit(GitObject):
         self.kvlm = dict()
 
 
+class GitTag(GitCommit):
+    fmt = b"tag"
+
+
 class GitTree(GitObject):
     fmt = b"tree"
 
