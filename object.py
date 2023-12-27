@@ -2,9 +2,12 @@ import os
 import zlib
 import sys
 import hashlib
-from repo import repo_file
+import re
+from repo import repo_file, repo_dir
 from kvlm import kvlm_parse, kvlm_serialize
 from tree import tree_parse, tree_serialize
+from ref import ref_resolve
+from error import GitException
 
 
 class GitObject(object):
@@ -74,6 +77,56 @@ class GitTree(GitObject):
         self.items = list()
 
 
+def object_resolve(repo, name):
+    """
+    Resolve name to an object hash in repo.
+
+    This function is aware of:
+        - short and long hashes
+        - tags
+        - branches
+        - remote branches
+    """
+    candidates = list()
+    hashRE = re.compile(r"^[0-9A-Fa-f]{4,40}$")
+
+    # Empty string? Abort.
+    if not name.strip():
+        return None
+
+    # HEAD id nonambiguous.
+    if name == "HEAD":
+        return [ref_resolve(repo, "HEAD")]
+
+    # If it is a hex string, try for a hash.
+    if hashRE.match(name):
+        # This may be a hash, either small or full. 4 seems to be the
+        # minimal length for git to consider something a short hash.
+        # This limit is documented in git-rev-parse.
+        name = name.lower()
+        prefix = name[0:2]
+
+        path = repo_dir(repo, "objects", prefix, mkdir=False)
+        if path:
+            rem = name[2:]
+            for f in os.listdir(path):
+                if f.startswith(rem):
+                    # Notice a string startswith() itself, so this
+                    # works fo full hashes.
+                    candidates.append(prefix + f)
+
+    # Try for references.
+    as_tag = ref_resolve(repo, "refs/tags/" + name)
+    if as_tag:
+        candidates.append(as_tag)
+
+    as_branch = ref_resolve(repo, "refs/heads/" + name)
+    if as_branch:
+        candidates.append(as_branch)
+
+    return candidates
+
+
 def object_find(repo, name, fmt=None, follow=True):
     """
     Find an git object from various means:
@@ -81,7 +134,41 @@ def object_find(repo, name, fmt=None, follow=True):
     - short hash
     - tags
     """
-    return name
+    sha = object_resolve(repo, name)
+    if not sha:
+        raise GitException("No such reference {0}.".format(name))
+    if len(sha) > 1:
+        raise GitException(
+            "Ambiguous reference {0}: Candidates are:\n - {1}".format(
+                name, "\n - ".join(sha)
+            )
+        )
+
+    sha = sha[0]
+
+    if not fmt:
+        return sha
+
+    while True:
+        obj = object_read(repo, sha)
+        #     ^^^^^^^^^^^ < this is a bit agressive: we're reading
+        # the full object just to get its type. And we're doing
+        # that in a loop, albeit normally short. Not very efficient
+        # performance wise.
+
+        if obj.fmt == fmt:
+            return sha
+
+        if not follow:
+            return None
+
+        # Follow tags
+        if obj.fmt == b"tag":
+            sha = obj.kvlm[b"object"].decode("ascii")
+        elif obj.fmt == b"commit" and fmt == b"tree":
+            sha = obj.kvlm[b"tree"].decode("ascii")
+        else:
+            return None
 
 
 def object_read(repo, sha):

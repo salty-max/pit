@@ -1,5 +1,6 @@
 import os
 from object import object_find, object_read
+from error import GitException
 
 
 def ls_tree(repo, ref, recursive=None, prefix=""):
@@ -29,7 +30,7 @@ def ls_tree(repo, ref, recursive=None, prefix=""):
 
         if not (recursive and type == "tree"):  # This is a leaf.
             print(
-                "{0} {1} {2}\t{3}".format(
+                "{0} {1} \x1b[0;33m{2}\x1b[0m\t{3}".format(
                     "0" * (6 - len(item.mode)) + item.mode.decode("ascii"),
                     # Git's ls-tree displays the type of the object pointed to.
                     type,
